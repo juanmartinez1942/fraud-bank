@@ -1,4 +1,4 @@
-# 🛡️ Fraud Detection - Prueba Técnica
+# 🛡️ Fraud Detection 
 
 Este proyecto tiene como objetivo detectar transacciones bancarias fraudulentas a partir de un conjunto de datos simulado. Se ha diseñado e implementado un sistema completo de análisis, entrenamiento de modelos, evaluación y monitoreo, con una interfaz interactiva mediante Streamlit.
 
