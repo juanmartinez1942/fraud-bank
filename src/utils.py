@@ -11,20 +11,39 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 🚨 Condición para detectar drift o baja performance
 def check_drift_condition(metrics, auc_threshold=0.88, drift_threshold=0.15):
+    """
+    Verifica si es necesario reentrenar el modelo según los umbrales de AUC y drift.
+
+    Args:
+        metrics (dict): Diccionario que contiene las claves 'auc' y 'drift_score'.
+        auc_threshold (float, opcional): Valor mínimo aceptable de AUC antes de disparar el reentrenamiento. Por defecto 0.88.
+        drift_threshold (float, opcional): Valor máximo aceptable de drift antes de disparar el reentrenamiento. Por defecto 0.15.
+
+    Returns:
+        bool: True si se debe reentrenar el modelo, False en caso contrario.
+    """
     return metrics["auc"] < auc_threshold or metrics["drift_score"] > drift_threshold
 
-# ⚠️ Guarda un warning visible desde Streamlit
 def write_retrain_warning(flag, warning_path="data/retrain_warning.txt"):
+    """
+    Escribe un mensaje de advertencia en un archivo si se recomienda reentrenar el modelo.
+
+    Args:
+        flag (bool): Indica si se recomienda el reentrenamiento.
+        warning_path (str, opcional): Ruta al archivo de advertencia. Por defecto "data/retrain_warning.txt".
+    """
     with open(warning_path, "w") as f:
         if flag:
             f.write("⚠️ Se recomienda reentrenar el modelo: drift o bajo rendimiento detectado.")
         else:
             f.write("")
 
-# 🗓 Simula cron semanal - entrena el modelo con última data
 def cron_weekly_train_model():
+    """
+    Simula una tarea semanal (cron) que reentrena el modelo usando los datos más recientes,
+    actualiza el archivo del modelo y escribe una advertencia si es necesario.
+    """
     df = pd.read_csv(os.getenv("FRAUD_DATASET"))
     df = engineer_features(df)
     df = df.drop(columns=["nameOrig", "nameDest", "isFlaggedFraud"])
@@ -37,14 +56,16 @@ def cron_weekly_train_model():
     df = impute_missing_values(df, num_cols)
     model, *_ = train_model(df.drop(columns=["isFraud"]), df["isFraud"], save_path=os.getenv("MODEL_PATH"))
 
-
     # Check drift + performance y escribir warning
     latest = load_monitoring_data(os.getenv("MONITORING_METRICS")).iloc[-1]
     flag = check_drift_condition(latest)
     write_retrain_warning(flag)
 
-# 🗓 Simula cron diario - genera predicciones
 def cron_daily_predict():
+    """
+    Simula una tarea diaria (cron) que genera predicciones usando el modelo más reciente
+    y guarda los resultados en un archivo CSV con la fecha actual.
+    """
     model = joblib.load(os.getenv("MODEL_PATH"))
     df = pd.read_csv(os.getenv("FRAUD_DATASET"))
     df = engineer_features(df)
@@ -60,8 +81,11 @@ def cron_daily_predict():
     today = datetime.today().strftime("%Y-%m-%d")
     df.to_csv(f"data/predictions_{today}.csv", index=False)
 
-# 🗓 Simula cron diario - evalúa y actualiza monitoring_metrics.csv
 def cron_daily_evaluate():
+    """
+    Simula una tarea diaria (cron) que evalúa las predicciones del modelo, actualiza las métricas de monitoreo
+    y agrega los resultados al archivo CSV de monitoreo.
+    """
     today = datetime.today().strftime("%Y-%m-%d")
     df = pd.read_csv(f"data/predictions_{today}.csv")
     df_ref = pd.read_csv(os.getenv("FRAUD_DATASET"))
