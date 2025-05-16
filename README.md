@@ -76,14 +76,25 @@ Este proyecto tiene como objetivo detectar transacciones bancarias fraudulentas 
 
 ### 1. Clonar el repo
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/juanmartinez1942/fraud-bank.git
 cd Fraud-bank
 ```
-## 2. Crear entorno
+## 2. Crear entorno virtual
+
+### Con conda:
 
 ```bash
 conda create -n fraud_detection python=3.9
 conda activate fraud_detection
+pip install -r requirements.txt
+```
+
+### Con Venv
+
+```bash
+python3 -m venv venv
+source venv/bin/activate  # En Linux / macOS
+venv\Scripts\activate     # En Windows
 pip install -r requirements.txt
 ```
 
@@ -115,3 +126,16 @@ WARNING_FILE=data/retrain_warning.txt
 RANDOM_STATE=42  
 SAMPLE_SIZE=200000  
 ```
+
+## 📊 Tecnologías Utilizadas
+	•	Python 3.9+
+	•	Pandas, Scikit-learn
+	•	Plotly, SHAP
+	•	Streamlit
+	•	Joblib, dotenv
+	•	LazyPredict (testing de modelos)
+
+## 📌 Consideraciones
+	•	Dataset desbalanceado → se usó RandomUnderSampler para rebalancear clases.
+	•	Validación robusta → incluye evaluación repetida y monitoreo continuo.
+	•	App generalizable → cualquier CSV compatible puede usarse sin romperse.
